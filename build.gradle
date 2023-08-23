@@ -1,0 +1,56 @@
+buildscript {
+    repositories {
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+    }
+    dependencies {
+        classpath("fish.payara.gradle.plugins:payara-micro-gradle-plugin:2.0.1")
+    }
+}
+
+
+
+plugins {
+    id "fish.payara.micro-gradle-plugin" version "2.0.1"
+}
+
+
+
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+description = "MicroProfile Starter example"
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+payaraMicro {
+    payaraVersion = '5.2021.1'
+    deployWar = true
+    useUberJar = true
+    daemon = false
+    commandLineOptions = [port: 8080, contextroot : '/']
+}
+
+
+
+
+
+dependencies {
+    providedCompile 'org.eclipse.microprofile:microprofile:6.0'
+
+    compileOnly("javax:javaee-api:8.0.1")
+
+    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.hibernate:hibernate-core:6.3.0.CR1")
+    implementation("org.eclipse.persistence:eclipselink:4.0.2")
+
+
+
+
+}
+
+repositories {
+    mavenCentral()
+}
