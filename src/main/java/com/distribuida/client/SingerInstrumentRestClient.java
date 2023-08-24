@@ -41,4 +41,8 @@ public interface SingerInstrumentRestClient {
     @Path("/{id}")
     void delete(@PathParam("id") Integer id);
 
+    @GET
+    @Path("/{id}/{id2}")
+    SingerInstrumentDto findByIds(@PathParam("id") Integer id, @PathParam("id2") Integer id2);
+
 }

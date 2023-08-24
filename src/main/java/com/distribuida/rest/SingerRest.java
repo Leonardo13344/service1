@@ -3,6 +3,8 @@ package com.distribuida.rest;
 import com.distribuida.client.SingerInstrumentRestClient;
 import com.distribuida.db.Singer;
 import com.distribuida.dto.SingerDto;
+import com.distribuida.dto.SingerInstrumentDto;
+import com.distribuida.repo.InstrumentRepository;
 import com.distribuida.repo.SingerRepository;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -10,9 +12,12 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 
+import java.sql.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +35,12 @@ public class SingerRest {
     @RestClient
     SingerInstrumentRestClient clientSingerInstrument;
 
+    @Inject
+    private InstrumentRepository iR;
+
     @GET
+    @Timeout(4000)
+    @Retry(maxRetries = 2)
     @Path("/instruments")
     public List<SingerDto> findAllInstrumentsOfSinger(){
         return sR.findAll()
@@ -48,11 +58,15 @@ public class SingerRest {
     }
 
     @GET
+    @Timeout(4000)
+    @Retry(maxRetries = 2)
     public List<Singer> findAll(){
         return sR.findAll();
     }
 
     @GET
+    @Timeout(4000)
+    @Retry(maxRetries = 2)
     @Path("/{id}")
     public Response findById(@PathParam("id") Integer id){
         var obj = sR.findById(id);
@@ -63,27 +77,56 @@ public class SingerRest {
     }
 
     @POST
-    public Response create(Singer singer){
+    @Timeout(4000)
+    @Retry(maxRetries = 2)
+    public Response create(SingerDto p){
+        p.getInstruments().stream().forEach(ins -> {
+            if (iR.findById(ins.getId()) != null){
+                SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
+                singerInstrumentDto.setSingerId(p.getId());
+                singerInstrumentDto.setInstrumentId(ins.getId());
+                clientSingerInstrument.create(singerInstrumentDto);
+            }
+        });
+        Singer singer = new Singer();
+        singer.setId(p.getId());
+        singer.setFirstName(p.getFirstName());
+        singer.setLastName(p.getLastName());
+        singer.setBirthDate((Date) p.getBirthDate());
+        singer.setVersion(p.getVersion());
         sR.create(singer);
         return Response.status(Response.Status.CREATED.getStatusCode(), "singer created").build();
     }
 
     @PUT
+    @Timeout(4000)
+    @Retry(maxRetries = 2)
     @Path("/{id}")
-    public Response update(@PathParam("id") Integer id, Singer tmp){
+    public Response update(@PathParam("id") Integer id, SingerDto tmp){
+        tmp.getInstruments().stream().forEach(ins -> {
+            if (iR.findById(ins.getId()) != null){
+                SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
+                singerInstrumentDto.setSingerId(tmp.getId());
+                singerInstrumentDto.setInstrumentId(ins.getId());
+                Integer idSingerInstrument = clientSingerInstrument.findByIds(tmp.getId(), ins.getId()).getId();
+                clientSingerInstrument.update(idSingerInstrument,singerInstrumentDto);
+            }
+        });
         var obj = sR.findById(id);
         if(obj == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         obj.setFirstName(tmp.getFirstName());
         obj.setLastName(tmp.getLastName());
-        obj.setBirthDate(tmp.getBirthDate());
+        obj.setBirthDate((Date) tmp.getBirthDate());
         obj.setVersion(tmp.getVersion());
         sR.update(obj);
         return Response.ok(obj).build();
     }
 
     @DELETE
+    @Timeout(4000)
+    @Retry(maxRetries = 2)
     @Path("/{id}")
     public Response delete(@PathParam("id") Integer id){
         var obj = sR.findById(id);

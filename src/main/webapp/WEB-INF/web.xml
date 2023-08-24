@@ -16,7 +16,7 @@
         <port-number>5432</port-number>
         <database-name>distribuida</database-name>
         <user>postgres</user>
-        <password>admin</password>
+        <password>root</password>
 
         <property>
             <name>fish.payara.log-jdbc-calls</name>
