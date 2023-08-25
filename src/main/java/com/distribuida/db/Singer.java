@@ -4,7 +4,8 @@ package com.distribuida.db;
 import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.persistence.*;
 
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.Date;
 
 
 @Entity
@@ -22,8 +23,7 @@ public class Singer {
     private String lastName;
 
     @Column(name = "birth_date")
-    @JsonbDateFormat(value = "dd-MM-yyyy", locale = "en_US")
-    private Date birthDate;
+    private LocalDate birthDate;
 
     @Column(name = "version")
     private Integer version;
@@ -52,11 +52,11 @@ public class Singer {
         this.lastName = lastName;
     }
 
-    public Date getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 

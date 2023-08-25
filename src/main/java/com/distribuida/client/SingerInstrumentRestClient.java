@@ -12,7 +12,7 @@ import java.util.List;
 @Path("/singer-instruments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RegisterRestClient(configKey = "singer-instrumentRestClient")
+@RegisterRestClient
 public interface SingerInstrumentRestClient {
 
     @GET

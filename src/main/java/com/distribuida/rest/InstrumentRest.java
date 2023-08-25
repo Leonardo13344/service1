@@ -2,6 +2,7 @@ package com.distribuida.rest;
 
 import com.distribuida.client.SingerInstrumentRestClient;
 import com.distribuida.db.Instrument;
+import com.distribuida.db.Singer;
 import com.distribuida.dto.InstrumentDto;
 import com.distribuida.dto.SingerInstrumentDto;
 import com.distribuida.repo.InstrumentRepository;
@@ -82,6 +83,13 @@ public class InstrumentRest {
                 singerInstrumentDto.setSingerId(p.getId());
                 singerInstrumentDto.setInstrumentId(singerDto.getId());
                 clientSingerInstrument.create(singerInstrumentDto);
+                Singer singerAux = new Singer();
+                singerAux.setId(singerDto.getId());
+                singerAux.setFirstName(singerDto.getFirstName());
+                singerAux.setLastName(singerDto.getLastName());
+                singerAux.setBirthDate(singerDto.getBirthDate());
+                singerAux.setVersion(singerDto.getVersion());
+                sR.create(singerAux);
             }
         });
         Instrument instrument = new Instrument();

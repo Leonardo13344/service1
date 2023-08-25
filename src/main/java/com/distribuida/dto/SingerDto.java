@@ -1,5 +1,8 @@
 package com.distribuida.dto;
 
+
+
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -11,7 +14,7 @@ public class SingerDto {
 
     private String lastName;
 
-    private Date birthDate;
+    private LocalDate birthDate;
 
     private Integer version;
 
@@ -41,11 +44,11 @@ public class SingerDto {
         this.lastName = lastName;
     }
 
-    public Date getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 

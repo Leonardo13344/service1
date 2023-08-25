@@ -1,6 +1,7 @@
 package com.distribuida.rest;
 
 import com.distribuida.client.SingerInstrumentRestClient;
+import com.distribuida.db.Instrument;
 import com.distribuida.db.Singer;
 import com.distribuida.dto.SingerDto;
 import com.distribuida.dto.SingerInstrumentDto;
@@ -86,13 +87,17 @@ public class SingerRest {
                 singerInstrumentDto.setSingerId(p.getId());
                 singerInstrumentDto.setInstrumentId(ins.getId());
                 clientSingerInstrument.create(singerInstrumentDto);
+                Instrument instrument = new Instrument();
+                instrument.setId(ins.getId());
+                instrument.setName(ins.getName());
+                iR.create(instrument);
             }
         });
         Singer singer = new Singer();
         singer.setId(p.getId());
         singer.setFirstName(p.getFirstName());
         singer.setLastName(p.getLastName());
-        singer.setBirthDate((Date) p.getBirthDate());
+        singer.setBirthDate(p.getBirthDate());
         singer.setVersion(p.getVersion());
         sR.create(singer);
         return Response.status(Response.Status.CREATED.getStatusCode(), "singer created").build();
@@ -118,7 +123,7 @@ public class SingerRest {
         }
         obj.setFirstName(tmp.getFirstName());
         obj.setLastName(tmp.getLastName());
-        obj.setBirthDate((Date) tmp.getBirthDate());
+        obj.setBirthDate(tmp.getBirthDate());
         obj.setVersion(tmp.getVersion());
         sR.update(obj);
         return Response.ok(obj).build();
