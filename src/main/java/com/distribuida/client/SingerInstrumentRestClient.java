@@ -1,7 +1,6 @@
 package com.distribuida.client;
 
-import com.distribuida.dto.InstrumentDto;
-import com.distribuida.dto.SingerDto;
+
 import com.distribuida.dto.SingerInstrumentDto;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -9,7 +8,7 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import java.util.List;
 
-@Path("/singer-instruments")
+@Path("/singers-instruments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RegisterRestClient
@@ -24,11 +23,11 @@ public interface SingerInstrumentRestClient {
 
     @GET
     @Path("/singer/{id}")
-    List<InstrumentDto> findBySingerId(@PathParam("id") Integer id);
+    List<SingerInstrumentDto> findBySingerId(@PathParam("id") Integer id);
 
     @GET
     @Path("/instrument/{id}")
-    List<SingerDto> findByInstrumentId(@PathParam("id") Integer id);
+    List<SingerInstrumentDto> findByInstrumentId(@PathParam("id") Integer id);
 
     @POST
     SingerInstrumentDto create(SingerInstrumentDto singerInstrumentDto);

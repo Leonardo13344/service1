@@ -2,8 +2,9 @@ package com.distribuida.rest;
 
 import com.distribuida.client.SingerInstrumentRestClient;
 import com.distribuida.db.Instrument;
-import com.distribuida.db.Singer;
 import com.distribuida.dto.InstrumentDto;
+import com.distribuida.dto.InstrumentDtoC;
+import com.distribuida.dto.SingerDto;
 import com.distribuida.dto.SingerInstrumentDto;
 import com.distribuida.repo.InstrumentRepository;
 import com.distribuida.repo.SingerRepository;
@@ -37,27 +38,31 @@ public class InstrumentRest {
     @RestClient
     SingerInstrumentRestClient clientSingerInstrument;
 
-    @GET
-    @Timeout(4000)
-    @Retry(maxRetries = 2)
-    @Path("/singers")
-    public List<InstrumentDto> findAllSingersOfInstrument(){
-        return iR.findAll()
-                .stream()
-                .map(obj ->{
-                    InstrumentDto dto = new InstrumentDto();
-                    dto.setId(Math.toIntExact(obj.getId()));
-                    dto.setName(obj.getName());
-                    dto.setSingers(clientSingerInstrument.findByInstrumentId(dto.getId()));
-                    return dto;
-                }).collect(Collectors.toList());
+    private InstrumentDto mapInstrumentToDto(Instrument instrument) {
+        InstrumentDto dto = new InstrumentDto();
+        dto.setId(Math.toIntExact(instrument.getId()));
+        dto.setName(instrument.getName());
+        var singers = clientSingerInstrument.findByInstrumentId(dto.getId());
+        List<SingerDto> singersDto = singers.stream().map(sin ->{
+            SingerDto singerDto = new SingerDto();
+            singerDto.setId(sin.getSingerId());
+            singerDto.setFirstName(sR.findById(sin.getSingerId()).getFirstName());
+            singerDto.setLastName(sR.findById(sin.getSingerId()).getLastName());
+            singerDto.setBirthDate(sR.findById(sin.getSingerId()).getBirthDate());
+            singerDto.setVersion(sR.findById(sin.getSingerId()).getVersion());
+            return singerDto;
+        }).collect(Collectors.toList());
+        dto.setSingers(singersDto);
+        return dto;
     }
 
     @GET
     @Timeout(4000)
     @Retry(maxRetries = 2)
-    public List<Instrument> findAll(){
-        return iR.findAll();
+    public List<InstrumentDto> findAllSingersOfInstrument(){
+        return iR.findAll()
+                .stream()
+                .map(this::mapInstrumentToDto).collect(Collectors.toList());
     }
 
     @GET
@@ -69,27 +74,20 @@ public class InstrumentRest {
         if(instrument == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(instrument).build();
+        InstrumentDto dto = mapInstrumentToDto(instrument);
+        return Response.ok(dto).build();
     }
 
     @POST
     @Timeout(4000)
     @Retry(maxRetries = 2)
-    public Response create(InstrumentDto p){
-        p.getSingers().stream().forEach(singerDto -> {
-            var singer = sR.findById(singerDto.getId());
-            if(singer != null){
+    public Response create(InstrumentDtoC p){
+        p.getSingersId().forEach(singerId -> {
+            if(sR.findById(singerId) != null){
                 SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
-                singerInstrumentDto.setSingerId(p.getId());
-                singerInstrumentDto.setInstrumentId(singerDto.getId());
+                singerInstrumentDto.setSingerId(singerId);
+                singerInstrumentDto.setInstrumentId(p.getId());
                 clientSingerInstrument.create(singerInstrumentDto);
-                Singer singerAux = new Singer();
-                singerAux.setId(singerDto.getId());
-                singerAux.setFirstName(singerDto.getFirstName());
-                singerAux.setLastName(singerDto.getLastName());
-                singerAux.setBirthDate(singerDto.getBirthDate());
-                singerAux.setVersion(singerDto.getVersion());
-                sR.create(singerAux);
             }
         });
         Instrument instrument = new Instrument();
@@ -104,7 +102,7 @@ public class InstrumentRest {
     @Retry(maxRetries = 2)
     @Path("/{id}")
     public Response update(@PathParam("id") Integer id, InstrumentDto tmp){
-        tmp.getSingers().stream().forEach(singerDto -> {
+        tmp.getSingers().forEach(singerDto -> {
             var singer = sR.findById(singerDto.getId());
             if(singer != null){
                 SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
