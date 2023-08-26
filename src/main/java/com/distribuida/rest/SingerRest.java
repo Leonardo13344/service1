@@ -73,60 +73,49 @@ public class SingerRest {
     @Retry(maxRetries = 2)
     @Path("/{id}")
     public Response findById(@PathParam("id") Integer id) {
-        var obj = sR.findById(id);
-        if (obj == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        var singer = sR.findById(id);
+        if (singer == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Cantante no encontrado").build();
         }
-        SingerDto dto = mapSingerToDto(obj);
+        SingerDto dto = mapSingerToDto(singer);
         return Response.ok(dto).build();
     }
 
     @POST
     @Timeout(4000)
     @Retry(maxRetries = 2)
-    public Response create(SingerDtoC p) {
-        p.getInstrumentsId().forEach(ins -> {
-            if (iR.findById(ins) != null) {
-                SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
-                singerInstrumentDto.setSingerId(p.getId());
-                singerInstrumentDto.setInstrumentId(ins);
-                clientSingerInstrument.create(singerInstrumentDto);
-            }
-        });
-        Singer singer = new Singer();
-        singer.setId(p.getId());
-        singer.setFirstName(p.getFirstName());
-        singer.setLastName(p.getLastName());
-        singer.setBirthDate(p.getBirthDate());
-        singer.setVersion(p.getVersion());
+    public Response create(Singer singer) {
         sR.create(singer);
-        return Response.status(Response.Status.CREATED.getStatusCode(), "singer created").build();
+        return Response.ok(singer).entity("Cantante creado exitosamente").build();
     }
 
     @PUT
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
-    public Response update(@PathParam("id") Integer id, SingerDto tmp) {
-        tmp.getInstruments().forEach(ins -> {
-            if (iR.findById(ins.getId()) != null) {
-                SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
-                singerInstrumentDto.setSingerId(tmp.getId());
-                singerInstrumentDto.setInstrumentId(ins.getId());
-                Integer idSingerInstrument = clientSingerInstrument.findByIds(tmp.getId(), ins.getId()).getId();
-                clientSingerInstrument.update(idSingerInstrument, singerInstrumentDto);
-            }
-        });
-        var obj = sR.findById(id);
-        if (obj == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+    public Response update(@PathParam("id") Integer id, SingerDtoC tmpSinger) {
+
+        var singer = sR.findById(id);
+        if (singer == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Cantante no encontrado").build();
         }
-        obj.setFirstName(tmp.getFirstName());
-        obj.setLastName(tmp.getLastName());
-        obj.setBirthDate(tmp.getBirthDate());
-        obj.setVersion(tmp.getVersion());
-        sR.update(obj);
-        return Response.ok(obj).build();
+        if(tmpSinger.getInstrumentsId()!= null){
+            tmpSinger.getInstrumentsId().forEach(ins -> {
+                if (iR.findById(ins) != null) {
+                    SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
+                    singerInstrumentDto.setSingerId(id);
+                    singerInstrumentDto.setInstrumentId(ins);
+                    clientSingerInstrument.create(singerInstrumentDto);
+                }
+            });
+        }
+
+        singer.setFirstName(tmpSinger.getFirstName());
+        singer.setLastName(tmpSinger.getLastName());
+        singer.setBirthDate(tmpSinger.getBirthDate());
+        singer.setVersion(tmpSinger.getVersion());
+        sR.update(singer);
+        return Response.ok(singer).entity("Cantante actualizado exitosamente").build();
     }
 
     @DELETE
@@ -134,12 +123,13 @@ public class SingerRest {
     @Retry(maxRetries = 2)
     @Path("/{id}")
     public Response delete(@PathParam("id") Integer id) {
-        var obj = sR.findById(id);
-        if (obj == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        var singer = sR.findById(id);
+        if (singer == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Cantante no encontrado").build();
         }
         sR.delete(id);
-        return Response.ok(obj).build();
+        clientSingerInstrument.findBySingerId(id).stream().forEach(x->clientSingerInstrument.delete(x.getId()));
+        return Response.ok(singer).entity("Cantante eliminado exitosamente").build();
     }
 
 }

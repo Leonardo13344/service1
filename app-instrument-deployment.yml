@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-instrument
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-instrument
+  template:
+    metadata:
+      labels:
+        app: app-instrument
+    spec:
+      containers:
+        - name: app-instrument
+          image: milekaterine/app-instrument:latest
+          env:
+            - name: POSTGRES_HOST
+              value: postgres-service
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: admin
+            - name: POSTGRES_DB
+              value: distribuida
+            - name: APP_SINGER_INSTRUMENT_URL
+              value: http://app-singer-instrument-service:8081
+          ports:
+            - containerPort: 8082
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-instrument-service
+spec:
+  type: ClusterIP
+  selector:
+    app: app-instrument
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082

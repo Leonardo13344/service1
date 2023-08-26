@@ -72,7 +72,9 @@ public class InstrumentRest {
     public Response getById(@PathParam("id") Integer id){
         var instrument = iR.findById(id);
         if(instrument == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Instrumento no encontrado")
+                    .build();
         }
         InstrumentDto dto = mapInstrumentToDto(instrument);
         return Response.ok(dto).build();
@@ -81,44 +83,35 @@ public class InstrumentRest {
     @POST
     @Timeout(4000)
     @Retry(maxRetries = 2)
-    public Response create(InstrumentDtoC p){
-        p.getSingersId().forEach(singerId -> {
-            if(sR.findById(singerId) != null){
-                SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
-                singerInstrumentDto.setSingerId(singerId);
-                singerInstrumentDto.setInstrumentId(p.getId());
-                clientSingerInstrument.create(singerInstrumentDto);
-            }
-        });
-        Instrument instrument = new Instrument();
-        instrument.setName(p.getName());
-        instrument.setId(p.getId());
-        iR.create(instrument);
-        return Response.ok(p).build();
+    public Response create(Instrument p){
+        iR.create(p);
+        return Response.ok(p).entity("Instrumento creado exitosamente").build();
     }
 
     @PUT
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
-    public Response update(@PathParam("id") Integer id, InstrumentDto tmp){
-        tmp.getSingers().forEach(singerDto -> {
-            var singer = sR.findById(singerDto.getId());
-            if(singer != null){
-                SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
-                singerInstrumentDto.setSingerId(tmp.getId());
-                singerInstrumentDto.setInstrumentId(singerDto.getId());
-                Integer idSingerInstrument = clientSingerInstrument.findByIds(tmp.getId(), singerDto.getId()).getId();
-                clientSingerInstrument.update(idSingerInstrument ,singerInstrumentDto);
-            }
-        });
+    public Response update(@PathParam("id") Integer id, InstrumentDtoC instrument){
+
         var instrumentAux = iR.findById(id);
+
         if(instrumentAux == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Instrumento no encontrado").build();
         }
-        instrumentAux.setName(tmp.getName());
+        if(instrument.getSingersId()!=null){
+            instrument.getSingersId().forEach(singerId -> {
+                if(sR.findById(singerId) != null){
+                    SingerInstrumentDto singerInstrumentDto = new SingerInstrumentDto();
+                    singerInstrumentDto.setSingerId(singerId);
+                    singerInstrumentDto.setInstrumentId(id);
+                    clientSingerInstrument.create(singerInstrumentDto);
+                }
+            });
+        }
+        instrumentAux.setName(instrument.getName());
         iR.update(instrumentAux);
-        return Response.ok(instrumentAux).build();
+        return Response.ok(instrument).entity("Instrumento actualizado exitosamente").build();
     }
 
     @DELETE
@@ -128,9 +121,10 @@ public class InstrumentRest {
     public Response delete(@PathParam("id") Integer id){
         var instrument = iR.findById(id);
         if(instrument == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Instrumento no encontrado").build();
         }
         iR.delete(id);
-        return Response.ok().build();
+        clientSingerInstrument.findByInstrumentId(id).stream().forEach(x->clientSingerInstrument.delete(x.getId()));
+        return Response.ok().entity("Instrumento eliminado exitosamente").build();
     }
 }
