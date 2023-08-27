@@ -128,7 +128,7 @@ public class SingerRest {
             return Response.status(Response.Status.NOT_FOUND).entity("Cantante no encontrado").build();
         }
         sR.delete(id);
-        clientSingerInstrument.findBySingerId(id).stream().forEach(x->clientSingerInstrument.delete(x.getId()));
+        clientSingerInstrument.findBySingerId(id).forEach(x->clientSingerInstrument.delete(x.getId()));
         return Response.ok(singer).entity("Cantante eliminado exitosamente").build();
     }
 
