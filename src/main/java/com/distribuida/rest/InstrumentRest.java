@@ -16,6 +16,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import java.util.List;
@@ -59,6 +61,7 @@ public class InstrumentRest {
     @GET
     @Timeout(4000)
     @Retry(maxRetries = 2)
+    @Counted(name = "findAllInstruments", description = "How many times findAllInstruments method have been invoked", absolute = true)
     public List<InstrumentDto> findAllSingersOfInstrument(){
         return iR.findAll()
                 .stream()
@@ -69,6 +72,7 @@ public class InstrumentRest {
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
+    @Counted(name = "findInstrumentById", description = "How many times the findInstrumentById method has been invoked", absolute = true)
     public Response getById(@PathParam("id") Integer id){
         var instrument = iR.findById(id);
         if(instrument == null){
@@ -83,6 +87,7 @@ public class InstrumentRest {
     @POST
     @Timeout(4000)
     @Retry(maxRetries = 2)
+    @Timed(name = "createInstrumentTimer", description = "A measure of how long it takes to create a instrument", absolute = true)
     public Response create(Instrument p){
         iR.create(p);
         return Response.ok(p).entity("Instrumento creado exitosamente").build();
@@ -92,6 +97,7 @@ public class InstrumentRest {
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
+    @Timed(name = "updateInstrumentTimer", description = "A measure of how long it takes to update a instrument", absolute = true)
     public Response update(@PathParam("id") Integer id, InstrumentDtoC instrument){
 
         var instrumentAux = iR.findById(id);
@@ -118,6 +124,7 @@ public class InstrumentRest {
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
+    @Timed(name = "deleteInstrumentTimer", description = "A measure of how long it takes to delete a instrument", absolute = true)
     public Response delete(@PathParam("id") Integer id){
         var instrument = iR.findById(id);
         if(instrument == null){

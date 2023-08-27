@@ -17,6 +17,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 
@@ -62,6 +64,7 @@ public class SingerRest {
     @GET
     @Timeout(4000)
     @Retry(maxRetries = 2)
+    @Counted(name = "findAllSingers", description = "How many times the findAll method has been invoked", absolute = true)
     public List<SingerDto> findAllInstrumentsOfSinger() {
         return sR.findAll()
                 .stream()
@@ -72,6 +75,7 @@ public class SingerRest {
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
+    @Counted(name = "findSingerById", description = "How many times the findSingerById method has been invoked", absolute = true)
     public Response findById(@PathParam("id") Integer id) {
         var singer = sR.findById(id);
         if (singer == null) {
@@ -84,6 +88,7 @@ public class SingerRest {
     @POST
     @Timeout(4000)
     @Retry(maxRetries = 2)
+    @Timed(name = "createSingerTimer", description = "A measure of how long it takes to create a singer", absolute = true)
     public Response create(Singer singer) {
         sR.create(singer);
         return Response.ok(singer).entity("Cantante creado exitosamente").build();
@@ -93,6 +98,7 @@ public class SingerRest {
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
+    @Timed(name = "updateSingerTimer", description = "A measure of how long it takes to update a singer", absolute = true)
     public Response update(@PathParam("id") Integer id, SingerDtoC tmpSinger) {
 
         var singer = sR.findById(id);
@@ -122,6 +128,7 @@ public class SingerRest {
     @Timeout(4000)
     @Retry(maxRetries = 2)
     @Path("/{id}")
+    @Timed(name = "deleteSingerTimer", description = "A measure of how long it takes to delete a singer", absolute = true)
     public Response delete(@PathParam("id") Integer id) {
         var singer = sR.findById(id);
         if (singer == null) {
